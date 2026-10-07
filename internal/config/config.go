@@ -8,13 +8,16 @@ import (
 )
 
 type Config struct {
-	Environment    string
-	HTTPAddr       string
-	LogLevel       slog.Level
-	DatabaseURL    string
-	RedisAddr      string
-	RedisPassword  string
-	CookieSecure   bool
+	Environment       string
+	HTTPAddr          string
+	LogLevel          slog.Level
+	DatabaseURL       string
+	RedisAddr         string
+	RedisPassword     string
+	CookieSecure      bool
+	GitHubClientID    string
+	GitHubClientSecret string
+	GitHubCallbackURL string
 }
 
 func Load() (Config, error) {
@@ -24,12 +27,15 @@ func Load() (Config, error) {
 	}
 
 	cfg := Config{
-		Environment:   value("FUZE_ENV", "development"),
-		HTTPAddr:      value("FUZE_HTTP_ADDR", ":8080"),
-		DatabaseURL:   os.Getenv("FUZE_DATABASE_URL"),
-		RedisAddr:     value("FUZE_REDIS_ADDR", "localhost:6379"),
-		RedisPassword: os.Getenv("FUZE_REDIS_PASSWORD"),
-		CookieSecure:  secure,
+		Environment:        value("FUZE_ENV", "development"),
+		HTTPAddr:           value("FUZE_HTTP_ADDR", ":8080"),
+		DatabaseURL:        os.Getenv("FUZE_DATABASE_URL"),
+		RedisAddr:          value("FUZE_REDIS_ADDR", "localhost:6379"),
+		RedisPassword:      os.Getenv("FUZE_REDIS_PASSWORD"),
+		CookieSecure:       secure,
+		GitHubClientID:     os.Getenv("FUZE_GITHUB_CLIENT_ID"),
+		GitHubClientSecret: os.Getenv("FUZE_GITHUB_CLIENT_SECRET"),
+		GitHubCallbackURL:  os.Getenv("FUZE_GITHUB_CALLBACK_URL"),
 	}
 
 	level, err := parseLevel(value("FUZE_LOG_LEVEL", "info"))
