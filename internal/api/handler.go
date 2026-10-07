@@ -7,6 +7,7 @@ import (
 	"time"
 
 	"github.com/Enoch7768/fuzeflow/internal/auth"
+	"github.com/Enoch7768/fuzeflow/internal/config"
 	"github.com/Enoch7768/fuzeflow/internal/security"
 )
 
@@ -15,14 +16,14 @@ type Handler struct {
 }
 
 func NewHandler(logger *slog.Logger) http.Handler {
-	return newHandler(logger, nil, false)
+	return newHandler(logger, nil, false, config.Config{})
 }
 
-func NewHandlerWithStore(logger *slog.Logger, store *auth.Store, secureCookies bool) http.Handler {
-	return newHandler(logger, store, secureCookies)
+func NewHandlerWithStore(logger *slog.Logger, store *auth.Store, cfg config.Config) http.Handler {
+	return newHandler(logger, store, cfg.CookieSecure, cfg)
 }
 
-func newHandler(logger *slog.Logger, store *auth.Store, secureCookies bool) http.Handler {
+func newHandler(logger *slog.Logger, store *auth.Store, secureCookies bool, cfg config.Config) http.Handler {
 	h := &Handler{logger: logger}
 	mux := http.NewServeMux()
 	mux.HandleFunc("GET /healthz", h.health)
@@ -37,6 +38,10 @@ func newHandler(logger *slog.Logger, store *auth.Store, secureCookies bool) http
 		mux.HandleFunc("POST /api/v1/auth/logout", auth.WithSession(store, http.HandlerFunc(authAPI.logout)))
 		mux.Handle("GET /api/v1/auth/me", auth.WithSession(store, auth.RequireAuth(http.HandlerFunc(authAPI.me))))
 		mux.Handle("GET /api/v1/organizations", auth.WithSession(store, auth.RequireAuth(http.HandlerFunc(authAPI.organizations))))
+
+		github := newGitHubOAuth(cfg, store)
+		mux.HandleFunc("GET /api/v1/auth/github", github.start)
+		mux.HandleFunc("GET /api/v1/auth/github/callback", github.callbackHandler)
 	}
 
 	handler := security.RequestID(security.NoStore(security.CleanupLimiter(securityHeaders(requestLogging(mux, logger)))))
@@ -63,9 +68,7 @@ func (h *Handler) ready(w http.ResponseWriter, _ *http.Request) {
 
 func (h *Handler) apiRoot(w http.ResponseWriter, _ *http.Request) {
 	writeJSON(w, http.StatusOK, map[string]any{
-		"name":    "FuzeFlow",
-		"version": "0.1.0",
-		"status":  "security-foundation",
+		"name": "FuzeFlow", "version": "0.1.0", "status": "security-foundation",
 	})
 }
 
