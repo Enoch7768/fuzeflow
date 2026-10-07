@@ -5,6 +5,9 @@ import (
 	"log/slog"
 	"net/http"
 	"time"
+
+	"github.com/Enoch7768/fuzeflow/internal/auth"
+	"github.com/Enoch7768/fuzeflow/internal/security"
 )
 
 type Handler struct {
@@ -12,12 +15,42 @@ type Handler struct {
 }
 
 func NewHandler(logger *slog.Logger) http.Handler {
+	return newHandler(logger, nil, false)
+}
+
+func NewHandlerWithStore(logger *slog.Logger, store *auth.Store, secureCookies bool) http.Handler {
+	return newHandler(logger, store, secureCookies)
+}
+
+func newHandler(logger *slog.Logger, store *auth.Store, secureCookies bool) http.Handler {
 	h := &Handler{logger: logger}
 	mux := http.NewServeMux()
 	mux.HandleFunc("GET /healthz", h.health)
 	mux.HandleFunc("GET /readyz", h.ready)
 	mux.HandleFunc("GET /api/v1", h.apiRoot)
-	return securityHeaders(requestLogging(mux, logger))
+
+	if store != nil {
+		authAPI := &authAPI{store: store, secure: secureCookies}
+		limited := security.NewLimiter(10, time.Minute)
+		mux.Handle("POST /api/v1/auth/signup", rateLimited(limited, http.HandlerFunc(authAPI.signup)))
+		mux.Handle("POST /api/v1/auth/login", rateLimited(limited, http.HandlerFunc(authAPI.login)))
+		mux.HandleFunc("POST /api/v1/auth/logout", auth.WithSession(store, http.HandlerFunc(authAPI.logout)))
+		mux.Handle("GET /api/v1/auth/me", auth.WithSession(store, auth.RequireAuth(http.HandlerFunc(authAPI.me))))
+		mux.Handle("GET /api/v1/organizations", auth.WithSession(store, auth.RequireAuth(http.HandlerFunc(authAPI.organizations))))
+	}
+
+	handler := security.RequestID(security.NoStore(security.CleanupLimiter(securityHeaders(requestLogging(mux, logger)))))
+	return handler
+}
+
+func rateLimited(limiter *security.Limiter, next http.Handler) http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		if !limiter.Allow(r) {
+			http.Error(w, "rate limit exceeded", http.StatusTooManyRequests)
+			return
+		}
+		next.ServeHTTP(w, r)
+	})
 }
 
 func (h *Handler) health(w http.ResponseWriter, _ *http.Request) {
@@ -32,7 +65,7 @@ func (h *Handler) apiRoot(w http.ResponseWriter, _ *http.Request) {
 	writeJSON(w, http.StatusOK, map[string]any{
 		"name":    "FuzeFlow",
 		"version": "0.1.0",
-		"status":  "foundation",
+		"status":  "security-foundation",
 	})
 }
 
