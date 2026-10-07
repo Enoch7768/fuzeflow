@@ -1,0 +1,43 @@
+name: CI
+
+on:
+  push:
+    branches: ["main", "phase-*"]
+  pull_request:
+
+permissions:
+  contents: read
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:17
+        env:
+          POSTGRES_DB: fuzeflow
+          POSTGRES_USER: fuzeflow
+          POSTGRES_PASSWORD: fuzeflow
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U fuzeflow -d fuzeflow"
+          --health-interval 5s
+          --health-timeout 3s
+          --health-retries 10
+      redis:
+        image: redis:8
+        ports:
+          - 6379:6379
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-go@v5
+        with:
+          go-version: "1.25"
+          cache: true
+      - run: go mod download
+      - run: gofmt -w $(find . -name '*.go' -type f)
+      - run: git diff --exit-code
+      - run: go test ./...
+      - run: go test -race ./...
+      - run: go vet ./...
