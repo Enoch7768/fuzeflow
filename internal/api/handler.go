@@ -35,7 +35,7 @@ func newHandler(logger *slog.Logger, store *auth.Store, secureCookies bool, cfg 
 		limited := security.NewLimiter(10, time.Minute)
 		mux.Handle("POST /api/v1/auth/signup", rateLimited(limited, http.HandlerFunc(authAPI.signup)))
 		mux.Handle("POST /api/v1/auth/login", rateLimited(limited, http.HandlerFunc(authAPI.login)))
-		mux.HandleFunc("POST /api/v1/auth/logout", auth.WithSession(store, http.HandlerFunc(authAPI.logout)))
+		mux.Handle("POST /api/v1/auth/logout", auth.WithSession(store, http.HandlerFunc(authAPI.logout)))
 		mux.Handle("GET /api/v1/auth/me", auth.WithSession(store, auth.RequireAuth(http.HandlerFunc(authAPI.me))))
 		mux.Handle("GET /api/v1/organizations", auth.WithSession(store, auth.RequireAuth(http.HandlerFunc(authAPI.organizations))))
 
