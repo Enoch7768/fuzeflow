@@ -1,3 +1,5 @@
+ALTER TABLE users ADD COLUMN password_hash TEXT;
+
 CREATE TABLE oauth_accounts (
     provider TEXT NOT NULL,
     provider_user_id TEXT NOT NULL,
