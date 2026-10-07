@@ -32,7 +32,8 @@ func main() {
 
 	handler := api.NewHandlerWithStore(logger, auth.NewStore(db), cfg)
 	server := &http.Server{
-		Addr: cfg.HTTPAddr, Handler: handler,
+		Addr:              cfg.HTTPAddr,
+		Handler:           handler,
 		ReadHeaderTimeout: 5 * time.Second,
 		ReadTimeout: 15 * time.Second,
 		WriteTimeout: 30 * time.Second,
