@@ -30,14 +30,13 @@ func main() {
 	}
 	defer db.Close()
 
-	handler := api.NewHandlerWithStore(logger, auth.NewStore(db), cfg.CookieSecure)
+	handler := api.NewHandlerWithStore(logger, auth.NewStore(db), cfg)
 	server := &http.Server{
-		Addr:              cfg.HTTPAddr,
-		Handler:           handler,
+		Addr: cfg.HTTPAddr, Handler: handler,
 		ReadHeaderTimeout: 5 * time.Second,
-		ReadTimeout:       15 * time.Second,
-		WriteTimeout:      30 * time.Second,
-		IdleTimeout:       60 * time.Second,
+		ReadTimeout: 15 * time.Second,
+		WriteTimeout: 30 * time.Second,
+		IdleTimeout: 60 * time.Second,
 	}
 
 	ctx, stop := signal.NotifyContext(context.Background(), syscall.SIGINT, syscall.SIGTERM)
