@@ -8,16 +8,16 @@ import (
 )
 
 type Config struct {
-	Environment       string
-	HTTPAddr          string
-	LogLevel          slog.Level
-	DatabaseURL       string
-	RedisAddr         string
-	RedisPassword     string
-	CookieSecure      bool
-	GitHubClientID    string
+	Environment        string
+	HTTPAddr           string
+	LogLevel           slog.Level
+	DatabaseURL        string
+	RedisAddr          string
+	RedisPassword      string
+	CookieSecure       bool
+	GitHubClientID     string
 	GitHubClientSecret string
-	GitHubCallbackURL string
+	GitHubCallbackURL  string
 }
 
 func Load() (Config, error) {
