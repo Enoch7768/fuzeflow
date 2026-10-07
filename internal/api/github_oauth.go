@@ -165,7 +165,7 @@ func (o *githubOAuth) githubEmail(r *http.Request, token string) (string, error)
 	var emails []struct {
 		Email    string
 		Verified bool
-		Primary   bool
+		Primary  bool
 	}
 	if err := json.Unmarshal(body, &emails); err != nil {
 		return "", err
