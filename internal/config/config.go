@@ -4,24 +4,32 @@ import (
 	"fmt"
 	"log/slog"
 	"os"
+	"strconv"
 )
 
 type Config struct {
-	Environment   string
-	HTTPAddr      string
-	LogLevel      slog.Level
-	DatabaseURL   string
-	RedisAddr     string
-	RedisPassword string
+	Environment    string
+	HTTPAddr       string
+	LogLevel       slog.Level
+	DatabaseURL    string
+	RedisAddr      string
+	RedisPassword  string
+	CookieSecure   bool
 }
 
 func Load() (Config, error) {
+	secure, err := strconv.ParseBool(value("FUZE_COOKIE_SECURE", "false"))
+	if err != nil {
+		return Config{}, fmt.Errorf("invalid FUZE_COOKIE_SECURE: %w", err)
+	}
+
 	cfg := Config{
 		Environment:   value("FUZE_ENV", "development"),
 		HTTPAddr:      value("FUZE_HTTP_ADDR", ":8080"),
 		DatabaseURL:   os.Getenv("FUZE_DATABASE_URL"),
 		RedisAddr:     value("FUZE_REDIS_ADDR", "localhost:6379"),
 		RedisPassword: os.Getenv("FUZE_REDIS_PASSWORD"),
+		CookieSecure:  secure,
 	}
 
 	level, err := parseLevel(value("FUZE_LOG_LEVEL", "info"))
