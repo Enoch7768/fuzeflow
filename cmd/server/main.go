@@ -11,7 +11,9 @@ import (
 	"time"
 
 	"github.com/Enoch7768/fuzeflow/internal/api"
+	"github.com/Enoch7768/fuzeflow/internal/auth"
 	"github.com/Enoch7768/fuzeflow/internal/config"
+	"github.com/Enoch7768/fuzeflow/internal/database"
 )
 
 func main() {
@@ -21,7 +23,14 @@ func main() {
 	}
 
 	logger := slog.New(slog.NewJSONHandler(os.Stdout, &slog.HandlerOptions{Level: cfg.LogLevel}))
-	handler := api.NewHandler(logger)
+	db, err := database.Open(context.Background(), cfg.DatabaseURL)
+	if err != nil {
+		logger.Error("database initialization failed", "error", err)
+		os.Exit(1)
+	}
+	defer db.Close()
+
+	handler := api.NewHandlerWithStore(logger, auth.NewStore(db), cfg.CookieSecure)
 	server := &http.Server{
 		Addr:              cfg.HTTPAddr,
 		Handler:           handler,
