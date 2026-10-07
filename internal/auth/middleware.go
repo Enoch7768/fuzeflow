@@ -43,8 +43,8 @@ func UserFromContext(ctx context.Context) (User, bool) {
 func SetSessionCookie(w http.ResponseWriter, token string, secure bool) {
 	http.SetCookie(w, &http.Cookie{
 		Name: SessionCookie, Value: token, Path: "/",
-		Expires: time.Now().UTC().Add(SessionTTL),
-		MaxAge: int(SessionTTL / time.Second),
+		Expires:  time.Now().UTC().Add(SessionTTL),
+		MaxAge:   int(SessionTTL / time.Second),
 		HttpOnly: true, Secure: secure, SameSite: http.SameSiteLaxMode,
 	})
 }
