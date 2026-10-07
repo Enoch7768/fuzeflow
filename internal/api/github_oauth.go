@@ -16,12 +16,12 @@ import (
 )
 
 type githubOAuth struct {
-	store *auth.Store
-	secure bool
+	store    *auth.Store
+	secure   bool
 	clientID string
-	secret string
+	secret   string
 	callback string
-	client *http.Client
+	client   *http.Client
 }
 
 func (o *githubOAuth) start(w http.ResponseWriter, r *http.Request) {
@@ -40,10 +40,10 @@ func (o *githubOAuth) start(w http.ResponseWriter, r *http.Request) {
 		MaxAge: 600, HttpOnly: true, Secure: o.secure, SameSite: http.SameSiteLaxMode,
 	})
 	query := url.Values{
-		"client_id": {o.clientID},
+		"client_id":    {o.clientID},
 		"redirect_uri": {o.callback},
-		"scope": {"read:user user:email"},
-		"state": {state},
+		"scope":        {"read:user user:email"},
+		"state":        {state},
 	}
 	http.Redirect(w, r, "https://github.com/login/oauth/authorize?"+query.Encode(), http.StatusFound)
 }
@@ -72,9 +72,9 @@ func (o *githubOAuth) callbackHandler(w http.ResponseWriter, r *http.Request) {
 	}
 
 	var profile struct {
-		ID int64
+		ID    int64
 		Login string
-		Name string
+		Name  string
 		Email string
 	}
 	if err := json.Unmarshal(body, &profile); err != nil || profile.ID == 0 {
@@ -163,9 +163,9 @@ func (o *githubOAuth) githubEmail(r *http.Request, token string) (string, error)
 		return "", err
 	}
 	var emails []struct {
-		Email string
+		Email    string
 		Verified bool
-		Primary bool
+		Primary   bool
 	}
 	if err := json.Unmarshal(body, &emails); err != nil {
 		return "", err
