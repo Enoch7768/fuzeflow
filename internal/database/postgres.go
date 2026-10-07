@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/jackc/pgx/v5"
 	"github.com/jackc/pgx/v5/stdlib"
 )
 
@@ -13,7 +14,7 @@ func Open(ctx context.Context, url string) (*sql.DB, error) {
 	if url == "" {
 		return nil, fmt.Errorf("database URL is required")
 	}
-	cfg, err := stdlib.ParseConfig(url)
+	cfg, err := pgx.ParseConfig(url)
 	if err != nil {
 		return nil, fmt.Errorf("parse database URL: %w", err)
 	}
