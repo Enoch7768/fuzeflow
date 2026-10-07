@@ -38,6 +38,7 @@ func newHandler(logger *slog.Logger, store *auth.Store, secureCookies bool, cfg 
 		mux.Handle("POST /api/v1/auth/logout", auth.WithSession(store, http.HandlerFunc(authAPI.logout)))
 		mux.Handle("GET /api/v1/auth/me", auth.WithSession(store, auth.RequireAuth(http.HandlerFunc(authAPI.me))))
 		mux.Handle("GET /api/v1/organizations", auth.WithSession(store, auth.RequireAuth(http.HandlerFunc(authAPI.organizations))))
+		mux.Handle("POST /api/v1/workflows/validate", workflowOrganization(http.HandlerFunc(validateWorkflow), store))
 
 		github := newGitHubOAuth(cfg, store)
 		mux.HandleFunc("GET /api/v1/auth/github", github.start)
